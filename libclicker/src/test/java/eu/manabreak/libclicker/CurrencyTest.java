@@ -49,10 +49,10 @@ public class CurrencyTest {
         Currency c = new Currency.Builder(world).build();
         assertEquals(BigInteger.ZERO, c.getValue());
 
-        c.add(new BigInteger("1"));
+        c.generate(new BigInteger("1"));
         assertEquals(BigInteger.ONE, c.getValue());
 
-        c.add(new BigInteger("12344"));
+        c.generate(new BigInteger("12344"));
         assertEquals(new BigInteger("12345"), c.getValue());
 
         c.sub(new BigInteger("300"));

@@ -25,6 +25,8 @@ package eu.manabreak.libclicker;
 
 import org.junit.Test;
 
+import eu.manabreak.libclicker.generators.Generator;
+
 import static org.junit.Assert.assertEquals;
 
 public class AutomatorTest {

@@ -9,9 +9,6 @@ public class WorldModifier extends Modifier {
     double speedMultiplier;
     boolean disableActivators;
 
-    private double speedMultiplierBefore;
-    private double speedMultiplierAfter;
-
     public WorldModifier(World world) {
         super(world);
     }
@@ -19,26 +16,26 @@ public class WorldModifier extends Modifier {
     @Override
     protected void onEnable() {
         if (speedMultiplier != 1.0) {
-            speedMultiplierBefore = getWorld().getSpeedMultiplier();
-            speedMultiplierAfter = speedMultiplier * speedMultiplierBefore;
+            double speedMultiplierBefore = world.getSpeedMultiplier();
+            double speedMultiplierAfter = speedMultiplier * speedMultiplierBefore;
             world.setSpeedMultiplier(speedMultiplierAfter);
         }
 
         if (disableActivators) {
-            getWorld().disableAutomators();
+            world.disableAutomators();
         }
     }
 
     @Override
     protected void onDisable() {
         if (speedMultiplier != 1.0) {
-            double d = getWorld().getSpeedMultiplier();
+            double d = world.getSpeedMultiplier();
             d /= speedMultiplier;
-            getWorld().setSpeedMultiplier(d);
+            world.setSpeedMultiplier(d);
         }
 
         if (disableActivators) {
-            getWorld().enableAutomators();
+            world.enableAutomators();
         }
     }
 }

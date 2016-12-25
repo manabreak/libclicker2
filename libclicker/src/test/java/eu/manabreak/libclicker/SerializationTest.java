@@ -32,6 +32,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 
+import eu.manabreak.libclicker.generators.Generator;
 import eu.manabreak.libclicker.modifiers.Modifier;
 
 import static org.junit.Assert.assertEquals;
@@ -78,7 +79,7 @@ public class SerializationTest {
         mWorld.enable();
 
         Modifier mGen = new Modifier.Builder()
-                .modify(gen)
+                .modify(world, gen)
                 .multiplier(4.2)
                 .build();
         mGen.enable();

@@ -26,11 +26,8 @@ package eu.manabreak.libclicker;
 /**
  * A purchase result enumeration. Denotes the result when trying to
  * purchase an item.
- *
- * @author Harri Pellikka
  */
-public enum PurchaseResult
-{
+public enum PurchaseResult {
     OK,
     INSUFFICIENT_FUNDS,
     MAX_LEVEL_REACHED

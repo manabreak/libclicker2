@@ -28,6 +28,7 @@ import org.junit.Test;
 import java.math.BigInteger;
 
 import eu.manabreak.libclicker.formatting.Formatter;
+import eu.manabreak.libclicker.generators.Generator;
 
 import static org.junit.Assert.assertEquals;
 

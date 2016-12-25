@@ -25,9 +25,9 @@ package eu.manabreak.libclicker.modifiers;
 
 import java.io.Serializable;
 
-import eu.manabreak.libclicker.Generator;
 import eu.manabreak.libclicker.Item;
 import eu.manabreak.libclicker.World;
+import eu.manabreak.libclicker.generators.Generator;
 
 /**
  * A base class for all the modifiers.
@@ -41,94 +41,49 @@ import eu.manabreak.libclicker.World;
 public abstract class Modifier extends Item implements Serializable {
     private boolean enabled = false;
 
+    protected Modifier(World world) {
+        super(world);
+    }
+
+    protected abstract void onEnable();
+
+    protected abstract void onDisable();
+
+    /**
+     * Enables this modifier, i.e. makes it active
+     */
+    public void enable() {
+        if (!enabled) {
+            enabled = true;
+            world.addModifier(this);
+            onEnable();
+        }
+    }
+
+    /**
+     * Disables this modifier, i.e. makes it inactive
+     */
+    public void disable() {
+        if (enabled) {
+            onDisable();
+            world.removeModifier(this);
+            enabled = false;
+        }
+    }
+
+    /**
+     * Checks whether or not this modifier is enabled
+     *
+     * @return True if enabled, false otherwise
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
     /**
      * Builder class for the modifiers
      */
     public static class Builder {
-        /**
-         * A modifier settings class for world modifiers.
-         * Keeps track of all the parameters the modifier should
-         * modify.
-         */
-        public static class WorldTarget {
-            World mWorld;
-            private double mSpeedMultiplier = 1.0;
-            private boolean mDisableActivators = false;
-
-            WorldTarget(World w) {
-                mWorld = w;
-            }
-
-            /**
-             * Speeds up all the processing by the given multiplier.
-             *
-             * @param multiplier Multiplier for advancing the time
-             * @return This target for chaining
-             */
-            public WorldTarget speedBy(double multiplier) {
-                mSpeedMultiplier = multiplier;
-                return this;
-            }
-
-            /**
-             * Disables all the activators
-             *
-             * @return This target for chaining
-             */
-            public WorldTarget disableActivators() {
-                mDisableActivators = true;
-                return this;
-            }
-
-            /**
-             * Creates the actual modifier based on the given settings
-             *
-             * @return Modifier
-             */
-            public Modifier build() {
-                WorldModifier m = new WorldModifier(mWorld);
-                m.speedMultiplier = mSpeedMultiplier;
-                m.disableActivators = mDisableActivators;
-                return m;
-            }
-        }
-
-        /**
-         * A modifier settings class for generator modifiers.
-         * Keeps track of all the parameters the modifier should
-         * modify.
-         */
-        public static class GeneratorTarget {
-            private Generator mGenerator;
-            private double mMultiplier = 1.0;
-
-            GeneratorTarget(Generator gen) {
-                mGenerator = gen;
-            }
-
-            /**
-             * Multiplies the production of the generator.
-             *
-             * @param multiplier Multiplier
-             * @return This target for chaining
-             */
-            public GeneratorTarget multiplier(double multiplier) {
-                mMultiplier = multiplier;
-                return this;
-            }
-
-            /**
-             * Constructs the actual modifier with the given settings
-             *
-             * @return Modifier as per the given settings
-             */
-            public Modifier build() {
-                GeneratorModifier m = new GeneratorModifier(mGenerator);
-                m.multiplier = mMultiplier;
-                return m;
-            }
-        }
-
         /**
          * Constructs a new modifier builder
          */
@@ -152,47 +107,94 @@ public abstract class Modifier extends Item implements Serializable {
          * @param gen Generator to modify
          * @return A generator target to set the modification details
          */
-        public final GeneratorTarget modify(Generator gen) {
-            return new GeneratorTarget(gen);
+        public final GeneratorTarget modify(World world, Generator gen) {
+            return new GeneratorTarget(world, gen);
         }
-    }
 
-    protected Modifier(World world) {
-        super(world);
-    }
+        /**
+         * A modifier settings class for world modifiers.
+         * Keeps track of all the parameters the modifier should
+         * modify.
+         */
+        public static class WorldTarget {
+            World world;
+            private double speedMultiplier = 1.0;
+            private boolean disableActivators = false;
 
-    protected abstract void onEnable();
+            WorldTarget(World w) {
+                world = w;
+            }
 
-    protected abstract void onDisable();
+            /**
+             * Speeds up all the processing by the given multiplier.
+             *
+             * @param multiplier Multiplier for advancing the time
+             * @return This target for chaining
+             */
+            public WorldTarget speedBy(double multiplier) {
+                speedMultiplier = multiplier;
+                return this;
+            }
 
-    /**
-     * Enables this modifier, i.e. makes it active
-     */
-    public void enable() {
-        if (!enabled) {
-            enabled = true;
-            getWorld().addModifier(this);
-            onEnable();
+            /**
+             * Disables all the activators
+             *
+             * @return This target for chaining
+             */
+            public WorldTarget disableActivators() {
+                disableActivators = true;
+                return this;
+            }
+
+            /**
+             * Creates the actual modifier based on the given settings
+             *
+             * @return Modifier
+             */
+            public Modifier build() {
+                WorldModifier m = new WorldModifier(world);
+                m.speedMultiplier = speedMultiplier;
+                m.disableActivators = disableActivators;
+                return m;
+            }
         }
-    }
 
-    /**
-     * Disables this modifier, i.e. makes it inactive
-     */
-    public void disable() {
-        if (enabled) {
-            onDisable();
-            getWorld().removeModifier(this);
-            enabled = false;
+        /**
+         * A modifier settings class for generator modifiers.
+         * Keeps track of all the parameters the modifier should
+         * modify.
+         */
+        public static class GeneratorTarget {
+            private final World world;
+            private Generator generator;
+            private double multiplier = 1.0;
+
+            GeneratorTarget(World world, Generator gen) {
+                this.world = world;
+                generator = gen;
+            }
+
+            /**
+             * Multiplies the production of the generator.
+             *
+             * @param multiplier Multiplier
+             * @return This target for chaining
+             */
+            public GeneratorTarget multiplier(double multiplier) {
+                this.multiplier = multiplier;
+                return this;
+            }
+
+            /**
+             * Constructs the actual modifier with the given settings
+             *
+             * @return Modifier as per the given settings
+             */
+            public Modifier build() {
+                GeneratorModifier m = new GeneratorModifier(world, generator);
+                m.multiplier = multiplier;
+                return m;
+            }
         }
-    }
-
-    /**
-     * Checks whether or not this modifier is enabled
-     *
-     * @return True if enabled, false otherwise
-     */
-    public boolean isEnabled() {
-        return enabled;
     }
 }

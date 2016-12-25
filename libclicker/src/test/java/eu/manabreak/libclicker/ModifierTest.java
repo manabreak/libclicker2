@@ -27,6 +27,7 @@ import org.junit.Test;
 
 import java.math.BigInteger;
 
+import eu.manabreak.libclicker.generators.Generator;
 import eu.manabreak.libclicker.modifiers.Modifier;
 
 import static org.junit.Assert.assertEquals;
@@ -146,7 +147,7 @@ public class ModifierTest {
         assertEquals(BigInteger.ONE, c.getValue());
 
         Modifier m = new Modifier.Builder()
-                .modify(g)
+                .modify(w, g)
                 .multiplier(2.0)
                 .build();
         m.enable();

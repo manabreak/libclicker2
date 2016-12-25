@@ -33,10 +33,18 @@ import eu.manabreak.libclicker.modifiers.Modifier;
 
 /**
  * Base class for all the purchasable "items".
- *
- * @author Harri Pellikka
  */
 public abstract class Item implements Serializable {
+    /**
+     * World this item belongs to
+     */
+    protected final World world;
+
+    /**
+     * Modifiers applied to this item
+     */
+    protected final List<Modifier> modifiers = new ArrayList<>();
+
     /**
      * The base price of the item (i.e. the price of the first level of this item)
      */
@@ -67,16 +75,6 @@ public abstract class Item implements Serializable {
      * like this: price = (base price) * (price multiplier) ^ (item level)
      */
     protected double priceMultiplier = 1.145;
-
-    /**
-     * World this item belongs to
-     */
-    protected final World world;
-
-    /**
-     * Modifiers applied to this item
-     */
-    final List<Modifier> modifiers = new ArrayList<>();
 
     /**
      * Constructs a new item
@@ -135,6 +133,10 @@ public abstract class Item implements Serializable {
         return basePrice;
     }
 
+    public void setBasePrice(int basePrice) {
+        this.basePrice = new BigInteger("" + basePrice);
+    }
+
     public BigInteger getPrice() {
         BigDecimal tmp = new BigDecimal(basePrice);
         tmp = tmp.multiply(new BigDecimal(Math.pow(priceMultiplier, itemLevel)));
@@ -169,10 +171,6 @@ public abstract class Item implements Serializable {
     }
 
     public void setBasePrice(long basePrice) {
-        this.basePrice = new BigInteger("" + basePrice);
-    }
-
-    public void setBasePrice(int basePrice) {
         this.basePrice = new BigInteger("" + basePrice);
     }
 
@@ -225,9 +223,5 @@ public abstract class Item implements Serializable {
 
     public void maximize() {
         itemLevel = maxItemLevel;
-    }
-
-    public World getWorld() {
-        return world;
     }
 }

@@ -21,109 +21,60 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package eu.manabreak.libclicker;
+package eu.manabreak.libclicker.generators;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
+import eu.manabreak.libclicker.Item;
+import eu.manabreak.libclicker.World;
 import eu.manabreak.libclicker.modifiers.GeneratorModifier;
+import eu.manabreak.libclicker.utils.RandomUtils;
 
 /**
  * A base class for all the generators.
  * <p>
- * Generators are used to produce resources (currencies), and
+ * Generators are used to produce resources (e.g. currencies), and
  * can be controlled either manually or automatically by using
  * an Automator.
- *
- * @author Harri Pellikka
  */
-public class Generator extends Item implements Serializable {
+public class Generator<T extends Resource> extends Item implements Serializable {
     public interface Callback {
         void onProcessed();
     }
 
-    /**
-     * Callback for extended functionality
-     */
     private Callback callback = null;
-
-    /**
-     * Currency this generator should generate
-     */
-    private Currency currency;
-
-    /**
-     * How many times this generator has been processed
-     */
+    private T resource;
     private long timesProcessed = 0;
-
-    /**
-     * Base amount of resources this generator generates
-     */
     private BigInteger baseAmount;
-
-    /**
-     * Multiplier used to increase the amount of resources generated
-     * when this generator is upgraded
-     */
     private double amountMultiplier;
-
-    /**
-     * Probability for this generator to "work"
-     */
     private double probability;
-
-    /**
-     * Should this generator use probability?
-     */
     private boolean useProbability;
-
-    /**
-     * RNG for probability
-     */
-    private Random random;
-
-    /**
-     * Should we take remainders into consideration?
-     */
     private boolean useRemainder;
-
-    /**
-     * Remainder of the last processing cycle
-     */
     private double remainder;
-
-    /**
-     * Cooldown time between processing cycles.
-     */
     private double cooldown;
-
-    /**
-     * List of active modifiers attached to this generator
-     */
     private List<GeneratorModifier> modifiers = new ArrayList<>();
 
     /**
      * Builder class for creating new generators
      */
     public static class Builder {
-        private final World mWorld;
-        private String mName = "Nameless generator";
-        private Callback mOnProcessed = null;
-        private Currency mCurrency = null;
-        private BigInteger mBaseAmount = BigInteger.ONE;
-        private double mAmountMultiplier = 1.1;
-        private long mMaxLevel = Long.MAX_VALUE;
-        private BigInteger mBasePrice = BigInteger.ONE;
-        private double mPriceMultiplier = 1.1;
-        private double mProbability = 1.0;
-        private boolean mProbabilitySet = false;
-        private boolean mUseRemainder = true;
-        private double mCooldown = 0.0;
+        private final World world;
+        private String name = "Nameless generator";
+        private Callback onProcessed = null;
+        private Resource resource;
+        private BigInteger baseAmount = BigInteger.ONE;
+        private double amountMultiplier = 1.1;
+        private long maxLevel = Long.MAX_VALUE;
+        private BigInteger basePrice = BigInteger.ONE;
+        private double priceMultiplier = 1.1;
+        private double probability = 1.0;
+        private boolean probabilitySet = false;
+        private boolean useRemainder = true;
+        private double cooldown = 0.0;
 
         /**
          * Creates a new generator builder
@@ -131,22 +82,30 @@ public class Generator extends Item implements Serializable {
          * @param world World to build the generator into
          */
         public Builder(World world) {
-            mWorld = world;
+            this.world = world;
         }
 
+        /**
+         * Sets the cooldown of this generator (in seconds).
+         * This is the minimum time between processing this
+         * generator.
+         *
+         * @param cooldown in seconds
+         * @return This builder for chaining
+         */
         public Builder cooldown(double cooldown) {
-            mCooldown = cooldown;
+            this.cooldown = cooldown;
             return this;
         }
 
         /**
-         * Store remainder of resources and add an extra
+         * Store remainder of resources and generate an extra
          * when the remainder "overflows"
          *
          * @return This builder for chaining
          */
         public Builder useRemainder() {
-            mUseRemainder = true;
+            useRemainder = true;
             return this;
         }
 
@@ -156,7 +115,7 @@ public class Generator extends Item implements Serializable {
          * @return This builder for chaining
          */
         public Builder discardRemainder() {
-            mUseRemainder = false;
+            useRemainder = false;
             return this;
         }
 
@@ -167,7 +126,7 @@ public class Generator extends Item implements Serializable {
          * @return This builder for chaining
          */
         public Builder name(String name) {
-            mName = name;
+            this.name = name;
             return this;
         }
 
@@ -179,7 +138,7 @@ public class Generator extends Item implements Serializable {
          * @return This builder for chaining
          */
         public Builder multiplier(double multiplier) {
-            mAmountMultiplier = multiplier;
+            amountMultiplier = multiplier;
             return this;
         }
 
@@ -193,7 +152,7 @@ public class Generator extends Item implements Serializable {
         public Builder maxLevel(long maxLevel) {
             if (maxLevel <= 0)
                 throw new IllegalArgumentException("Max level must be greater than 0");
-            mMaxLevel = maxLevel;
+            this.maxLevel = maxLevel;
             return this;
         }
 
@@ -207,7 +166,7 @@ public class Generator extends Item implements Serializable {
          */
         public Builder baseAmount(BigInteger amount) {
             if (amount == null) throw new IllegalArgumentException("Base amount cannot be null");
-            mBaseAmount = amount;
+            baseAmount = amount;
             return this;
         }
 
@@ -220,7 +179,7 @@ public class Generator extends Item implements Serializable {
          * @return This builder for chaining
          */
         public Builder baseAmount(long amount) {
-            mBaseAmount = new BigInteger("" + amount);
+            baseAmount = new BigInteger("" + amount);
             return this;
         }
 
@@ -233,20 +192,20 @@ public class Generator extends Item implements Serializable {
          * @return This builder for chaining
          */
         public Builder baseAmount(int amount) {
-            mBaseAmount = new BigInteger("" + amount);
+            baseAmount = new BigInteger("" + amount);
             return this;
         }
 
         /**
          * Sets the currency that should be generated by the generator.
          *
-         * @param c Currency to generate
+         * @param resource Resource to generate
          * @return This builder for chaining
          * @throws IllegalArgumentException Thrown if the currency is null
          */
-        public Builder generate(Currency c) throws IllegalArgumentException {
-            if (c == null) throw new IllegalArgumentException("Currency cannot be null");
-            mCurrency = c;
+        public Builder generate(Resource resource) throws IllegalArgumentException {
+            if (resource == null) throw new IllegalArgumentException("Currency cannot be null");
+            this.resource = resource;
             return this;
         }
 
@@ -258,27 +217,27 @@ public class Generator extends Item implements Serializable {
          * @return This builder for chaining
          */
         public Builder callback(Callback callback) {
-            mOnProcessed = callback;
+            onProcessed = callback;
             return this;
         }
 
         public Builder price(BigInteger price) {
-            mBasePrice = price;
+            basePrice = price;
             return this;
         }
 
         public Builder price(long price) {
-            mBasePrice = new BigInteger("" + price);
+            basePrice = new BigInteger("" + price);
             return this;
         }
 
         public Builder price(int price) {
-            mBasePrice = new BigInteger("" + price);
+            basePrice = new BigInteger("" + price);
             return this;
         }
 
         public Builder priceMultiplier(double multiplier) {
-            mPriceMultiplier = multiplier;
+            priceMultiplier = multiplier;
             return this;
         }
 
@@ -291,8 +250,8 @@ public class Generator extends Item implements Serializable {
         public Builder probability(double probability) {
             if (probability < 0 || probability > 1.0)
                 throw new IllegalArgumentException("Probability should be between 0.0 and 1.0");
-            mProbability = probability;
-            mProbabilitySet = true;
+            this.probability = probability;
+            probabilitySet = true;
             return this;
         }
 
@@ -302,21 +261,19 @@ public class Generator extends Item implements Serializable {
          * @return The generator
          */
         public Generator build() {
-            Generator g = new Generator(mWorld, mName);
-            g.callback = mOnProcessed;
-            g.currency = mCurrency;
-            g.amountMultiplier = mAmountMultiplier;
-            g.baseAmount = mBaseAmount;
-            g.maxItemLevel = mMaxLevel;
-            g.basePrice = mBasePrice;
-            g.priceMultiplier = mPriceMultiplier;
-            g.probability = mProbability;
-            g.useProbability = mProbabilitySet;
-            g.random = new Random();
-            g.random.setSeed(g.hashCode());
-            g.useRemainder = mUseRemainder;
-            g.cooldown = mCooldown;
-            mWorld.addGenerator(g);
+            Generator g = new Generator(world, name);
+            g.callback = onProcessed;
+            g.resource = resource;
+            g.amountMultiplier = amountMultiplier;
+            g.baseAmount = baseAmount;
+            g.maxItemLevel = maxLevel;
+            g.basePrice = basePrice;
+            g.priceMultiplier = priceMultiplier;
+            g.probability = probability;
+            g.useProbability = probabilitySet;
+            g.useRemainder = useRemainder;
+            g.cooldown = cooldown;
+            world.addGenerator(g);
             return g;
         }
     }
@@ -401,7 +358,7 @@ public class Generator extends Item implements Serializable {
      */
     private boolean isWorking() {
         if (itemLevel > 0) {
-            if (!useProbability || random.nextDouble() < probability) return true;
+            if (!useProbability || RandomUtils.nextDouble() < probability) return true;
         }
         return false;
     }
@@ -412,7 +369,7 @@ public class Generator extends Item implements Serializable {
      */
     public void process() {
         if (isWorking()) {
-            currency.add(getGeneratedAmount());
+            resource.generate(getGeneratedAmount());
             timesProcessed++;
             if (callback != null) callback.onProcessed();
         }

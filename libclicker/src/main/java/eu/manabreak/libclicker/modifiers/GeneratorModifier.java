@@ -1,6 +1,7 @@
 package eu.manabreak.libclicker.modifiers;
 
-import eu.manabreak.libclicker.Generator;
+import eu.manabreak.libclicker.World;
+import eu.manabreak.libclicker.generators.Generator;
 
 /**
  * Modifier for generators.
@@ -9,8 +10,8 @@ public class GeneratorModifier extends Modifier {
     private final Generator generator;
     double multiplier = 1.0;
 
-    GeneratorModifier(Generator generator) {
-        super(generator.getWorld());
+    GeneratorModifier(World world, Generator generator) {
+        super(world);
         this.generator = generator;
     }
 

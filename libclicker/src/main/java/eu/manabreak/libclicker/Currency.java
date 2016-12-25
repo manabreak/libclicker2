@@ -27,52 +27,22 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import eu.manabreak.libclicker.generators.Resource;
+
 /**
  * Base class for all currencies.
- *
- * @author Harri Pellikka
  */
-public class Currency implements Serializable {
-    /**
-     * Name of this currency
-     */
+public class Currency implements Serializable, Resource {
+
     private String name;
-
-    /**
-     * Huge number to hold the amount for this currency
-     */
     private BigInteger value = BigInteger.ZERO;
-
-    private final World world;
-
-    public static class Builder {
-        private final World world;
-        private String name = "Gold";
-
-        public Builder(World world) {
-            this.world = world;
-        }
-
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        public Currency build() {
-            Currency c = new Currency(world, name);
-            world.addCurrency(c);
-            return c;
-        }
-    }
 
     /**
      * Constructs a new currency with initial amount of 0
      *
-     * @param world to add this currency into
-     * @param name  of the currency
+     * @param name of the currency
      */
-    private Currency(World world, String name) {
-        this.world = world;
+    private Currency(String name) {
         this.name = name;
     }
 
@@ -98,12 +68,13 @@ public class Currency implements Serializable {
         return value;
     }
 
-    public void add(BigInteger other) {
-        value = value.add(other);
+    @Override
+    public void generate(BigInteger amount) {
+        value = value.add(amount);
     }
 
-    public void sub(BigInteger other) {
-        value = value.subtract(other);
+    public void sub(BigInteger amount) {
+        value = value.subtract(amount);
     }
 
     public void multiply(double multiplier) {
@@ -114,5 +85,25 @@ public class Currency implements Serializable {
 
     void set(BigInteger newValue) {
         value = newValue;
+    }
+
+    public static class Builder {
+        private final World world;
+        private String name = "Gold";
+
+        public Builder(World world) {
+            this.world = world;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Currency build() {
+            Currency c = new Currency(name);
+            world.addCurrency(c);
+            return c;
+        }
     }
 }

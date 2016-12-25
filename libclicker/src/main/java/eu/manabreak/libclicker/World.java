@@ -27,40 +27,20 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.manabreak.libclicker.generators.Generator;
 import eu.manabreak.libclicker.modifiers.Modifier;
 
 /**
  * A container for all the clicker objects
  */
 public class World implements Serializable {
-    /**
-     * Active generators
-     */
-    private List<Generator> generators = new ArrayList<>();
 
-    /**
-     * Active automators
-     */
-    private List<Automator> automators = new ArrayList<>();
+    private final List<Generator> generators = new ArrayList<>();
+    private final List<Automator> automators = new ArrayList<>();
+    private final List<Currency> currencies = new ArrayList<>();
+    private final List<Modifier> modifiers = new ArrayList<>();
 
-    /**
-     * Currencies in use
-     */
-    private List<Currency> currencies = new ArrayList<>();
-
-    /**
-     * Modifiers in use
-     */
-    private List<Modifier> modifiers = new ArrayList<>();
-
-    /**
-     * Speed multiplier - used to multiply the time the world advances
-     */
     private double speedMultiplier = 1.0;
-
-    /**
-     * Should automators be updated?
-     */
     private boolean updateAutomators = true;
 
     /**
@@ -74,9 +54,9 @@ public class World implements Serializable {
     /**
      * Adds a new generator to this world
      *
-     * @param generator Generator to add
+     * @param generator Generator to generate
      */
-    void addGenerator(Generator generator) {
+    public void addGenerator(Generator generator) {
         if (generator != null && !generators.contains(generator)) {
             generators.add(generator);
         }
@@ -96,7 +76,7 @@ public class World implements Serializable {
      *
      * @param generator Generator to remove
      */
-    void removeGenerator(Generator generator) {
+    public void removeGenerator(Generator generator) {
         if (generator != null && generators.contains(generator)) {
             generators.remove(generator);
         }
@@ -105,31 +85,59 @@ public class World implements Serializable {
     /**
      * Removes all the generators from this world
      */
-    void removeAllGenerators() {
+    public void removeAllGenerators() {
         generators.clear();
     }
 
-    void addCurrency(Currency c) {
+    /**
+     * Registers a new currency in the world, making
+     * the currency usable.
+     *
+     * @param c currency to register
+     */
+    public void addCurrency(Currency c) {
         if (c != null && !currencies.contains(c)) {
             currencies.add(c);
         }
     }
 
-    void removeCurrency(Currency c) {
+    /**
+     * Removes a currency from the world.
+     *
+     * @param c currency to remove
+     */
+    public void removeCurrency(Currency c) {
         if (c != null) {
             currencies.remove(c);
         }
     }
 
-    Currency getCurrency(int index) {
+    /**
+     * Retrieves a currency at the given index.
+     * The index is based on the order in which
+     * the currencies were added to the world.
+     *
+     * @param index of the currency
+     * @return the currency at the given index, or null if not found
+     */
+    public Currency getCurrency(int index) {
         return currencies.get(index);
     }
 
-    List<Currency> getCurrencies() {
+    /**
+     * Retrieves a list of all the currencies currently
+     * registered in the world.
+     *
+     * @return list of currencies
+     */
+    public List<Currency> getCurrencies() {
         return currencies;
     }
 
-    void removeAllCurrencies() {
+    /**
+     * Removes all currencies registered in the world.
+     */
+    public void removeAllCurrencies() {
         currencies.clear();
     }
 
@@ -149,55 +157,106 @@ public class World implements Serializable {
         }
     }
 
-    void addAutomator(Automator automator) {
+    /**
+     * Registers a new automator to the world.
+     *
+     * @param automator to register
+     */
+    public void addAutomator(Automator automator) {
         if (automator != null && !automators.contains(automator)) {
             automators.add(automator);
         }
     }
 
+    /**
+     * Registers a new modifier
+     *
+     * @param modifier to register
+     */
     public void addModifier(Modifier modifier) {
         if (modifier != null && !modifiers.contains(modifier)) {
             modifiers.add(modifier);
         }
     }
 
+    /**
+     * Retrieves the global speed multiplier
+     *
+     * @return the speed multiplier
+     */
     public double getSpeedMultiplier() {
         return speedMultiplier;
     }
 
+    /**
+     * Sets the global speed multiplier
+     *
+     * @param multiplier of the world update speed
+     */
     public void setSpeedMultiplier(double multiplier) {
         speedMultiplier = multiplier;
     }
 
+    /**
+     * Disables all automators
+     */
     public void disableAutomators() {
         updateAutomators = false;
     }
 
+    /**
+     * Enables all automators
+     */
     public void enableAutomators() {
         updateAutomators = true;
     }
 
-    void removeAutomator(Automator automator) {
+    /**
+     * Removes an automator from the world
+     *
+     * @param automator to remove
+     */
+    public void removeAutomator(Automator automator) {
         if (automator != null) {
             automators.remove(automator);
         }
     }
 
-    List<Automator> getAutomators() {
+    /**
+     * Retrieves all the automators registered in the world
+     *
+     * @return list of automators
+     */
+    public List<Automator> getAutomators() {
         return automators;
     }
 
-    List<Modifier> getModifiers() {
+    /**
+     * Retrieves all the modifiers registered in the world
+     *
+     * @return list of modifiers
+     */
+    public List<Modifier> getModifiers() {
         return modifiers;
     }
 
+    /**
+     * Removes a modifier from the world
+     *
+     * @param modifier to remove
+     */
     public void removeModifier(Modifier modifier) {
         if (modifier != null) {
             modifiers.remove(modifier);
         }
     }
 
-    boolean isAutomationEnabled() {
+    /**
+     * Queries whether or not the automators are enabled.
+     *
+     * @return True if automation is enabled, false otherwise.
+     */
+    public boolean isAutomationEnabled() {
         return updateAutomators;
     }
 }

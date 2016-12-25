@@ -26,14 +26,14 @@ package eu.manabreak.libclicker;
 import java.io.Serializable;
 import java.math.BigInteger;
 
+import eu.manabreak.libclicker.generators.Generator;
+
 /**
  * Automator class for automating generators.
  * <p>
  * Normally generators are manually controlled, i.e. they generate resources
  * when explicitly told to. Automators are used to trigger generators
  * during the world's update cycles.
- *
- * @author Harri Pellikka
  */
 public class Automator extends Item implements Serializable {
     private Generator generator;
@@ -42,6 +42,84 @@ public class Automator extends Item implements Serializable {
     private double multiplier;
     private boolean enabled;
     private double actualTickRate;
+
+    private Automator(World world, String name) {
+        super(world, name);
+    }
+
+    /**
+     * Enables this automator. Automators are enabled by default when
+     * they are created.
+     */
+    public void enable() {
+        if (!enabled) {
+            world.addAutomator(this);
+            enabled = true;
+        }
+    }
+
+    /**
+     * Disables this automator, effectively turning the automation off.
+     */
+    public void disable() {
+        if (enabled) {
+            world.removeAutomator(this);
+            enabled = false;
+        }
+    }
+
+    @Override
+    public void upgrade() {
+        super.upgrade(); //To change body of generated methods, choose Tools | Templates.
+        actualTickRate = getFinalTickRate();
+        System.out.println("Upgraded, final tick rate now: " + actualTickRate);
+    }
+
+    private double getFinalTickRate() {
+        if (itemLevel == 0) return 0.0;
+        double r = tickRate;
+        double m = Math.pow(multiplier, itemLevel - 1);
+        return r / m;
+    }
+
+    void update(double delta) {
+        if (!enabled || itemLevel == 0) return;
+
+        tickTimer += delta;
+        while (tickTimer >= actualTickRate) {
+            tickTimer -= actualTickRate;
+            generator.process();
+        }
+    }
+
+    /**
+     * Retrieves the tick rate of this automator.
+     *
+     * @return Tick rate in seconds
+     */
+    public double getTickRate() {
+        return tickRate;
+    }
+
+    /**
+     * Sets the tick rate of this automator.
+     *
+     * @param tickRate Tick rate in seconds
+     */
+    public void setTickRate(double tickRate) {
+        this.tickRate = tickRate;
+        if (this.tickRate < 0.0) this.tickRate = 0.0;
+    }
+
+    /**
+     * Retrieves the percentage of the tick. Useful
+     * when creating progress bars for generators.
+     *
+     * @return Percentage of tick completion
+     */
+    public double getTimerPercentage() {
+        return tickRate != 0.0 ? tickTimer / tickRate : 1.0;
+    }
 
     public static class Builder {
         private final World world;
@@ -150,83 +228,5 @@ public class Automator extends Item implements Serializable {
             world.addAutomator(a);
             return a;
         }
-    }
-
-    private Automator(World world, String name) {
-        super(world, name);
-    }
-
-    /**
-     * Enables this automator. Automators are enabled by default when
-     * they are created.
-     */
-    public void enable() {
-        if (!enabled) {
-            getWorld().addAutomator(this);
-            enabled = true;
-        }
-    }
-
-    /**
-     * Disables this automator, effectively turning the automation off.
-     */
-    public void disable() {
-        if (enabled) {
-            getWorld().removeAutomator(this);
-            enabled = false;
-        }
-    }
-
-    @Override
-    public void upgrade() {
-        super.upgrade(); //To change body of generated methods, choose Tools | Templates.
-        actualTickRate = getFinalTickRate();
-        System.out.println("Upgraded, final tick rate now: " + actualTickRate);
-    }
-
-    private double getFinalTickRate() {
-        if (itemLevel == 0) return 0.0;
-        double r = tickRate;
-        double m = Math.pow(multiplier, itemLevel - 1);
-        return r / m;
-    }
-
-    void update(double delta) {
-        if (!enabled || itemLevel == 0) return;
-
-        tickTimer += delta;
-        while (tickTimer >= actualTickRate) {
-            tickTimer -= actualTickRate;
-            generator.process();
-        }
-    }
-
-    /**
-     * Retrieves the tick rate of this automator.
-     *
-     * @return Tick rate in seconds
-     */
-    public double getTickRate() {
-        return tickRate;
-    }
-
-    /**
-     * Sets the tick rate of this automator.
-     *
-     * @param tickRate Tick rate in seconds
-     */
-    public void setTickRate(double tickRate) {
-        this.tickRate = tickRate;
-        if (this.tickRate < 0.0) this.tickRate = 0.0;
-    }
-
-    /**
-     * Retrieves the percentage of the tick. Useful
-     * when creating progress bars for generators.
-     *
-     * @return Percentage of tick completion
-     */
-    public double getTimerPercentage() {
-        return tickRate != 0.0 ? tickTimer / tickRate : 1.0;
     }
 }
