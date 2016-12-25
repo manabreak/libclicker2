@@ -3,6 +3,26 @@ Libclicker is a library for creating idle / incremental / clicker games.
 It features resources, resource generators, automators for generators and
 modifiers, as well as utilities e.g. for presentation.
 
+## Install
+
+Using Gradle, add the following line to your repositories:
+```
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+
+Also add the following line to your dependencies:
+
+```
+compile 'com.github.manabreak:libclicker2:0.1'
+```
+
+That's it!
+
 ## Usage
 
 Here's a basic introduction on how to use libclicker.
